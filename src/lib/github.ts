@@ -5,6 +5,8 @@ export interface PullRequest {
   url: string;
   votes: number;
   createdAt: string;
+  isMergeable: boolean;
+  checksPassed: boolean;
 }
 
 interface GitHubPR {
@@ -15,10 +17,21 @@ interface GitHubPR {
     login: string;
   };
   created_at: string;
+  head: {
+    sha: string;
+  };
 }
 
 interface GitHubReaction {
   content: string;
+}
+
+interface GitHubPRDetail {
+  mergeable: boolean | null;
+}
+
+interface GitHubCommitStatus {
+  state: "failure" | "pending" | "success" | "error";
 }
 
 const GITHUB_REPO = "skridlevsky/openchaos";
@@ -45,10 +58,13 @@ export async function getOpenPRs(): Promise<PullRequest[]> {
 
   const prs: GitHubPR[] = await response.json();
 
-  // Fetch reactions for each PR
+  // Fetch reactions and status for each PR
   const prsWithVotes = await Promise.all(
     prs.map(async (pr) => {
       const votes = await getPRVotes(owner, repo, pr.number);
+      const isMergeable = await getPRMergeStatus(owner, repo, pr.number);
+      const checksPassed = await getCommitStatus(owner, repo, pr.head.sha);
+
       return {
         number: pr.number,
         title: pr.title,
@@ -56,6 +72,8 @@ export async function getOpenPRs(): Promise<PullRequest[]> {
         url: pr.html_url,
         votes,
         createdAt: pr.created_at,
+        isMergeable,
+        checksPassed,
       };
     })
   );
@@ -85,4 +103,50 @@ async function getPRVotes(
 
   const reactions: GitHubReaction[] = await response.json();
   return reactions.filter((r) => r.content === "+1").length;
+}
+
+async function getPRMergeStatus(
+  owner: string,
+  repo: string,
+  prNumber: number
+): Promise<boolean> {
+  const response = await fetch(
+    `https://api.github.com/repos/${owner}/${repo}/pulls/${prNumber}`,
+    {
+      headers: {
+        Accept: "application/vnd.github.v3+json",
+      },
+      next: { revalidate: 60 },
+    }
+  );
+
+  if (!response.ok) {
+    return false;
+  }
+
+  const data: GitHubPRDetail = await response.json();
+  return data.mergeable ?? false;
+}
+
+async function getCommitStatus(
+  owner: string,
+  repo: string,
+  sha: string
+): Promise<boolean> {
+  const response = await fetch(
+    `https://api.github.com/repos/${owner}/${repo}/commits/${sha}/status`,
+    {
+      headers: {
+        Accept: "application/vnd.github.v3+json",
+      },
+      next: { revalidate: 60 },
+    }
+  );
+
+  if (!response.ok) {
+    return false;
+  }
+
+  const data: GitHubCommitStatus = await response.json();
+  return data.state === "success";
 }
