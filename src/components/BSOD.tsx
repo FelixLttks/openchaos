@@ -97,7 +97,7 @@ export function BSOD() {
             cursor: 'none',
             lineHeight: '1.2',
             boxSizing: 'border-box',
-            overflow: 'hidden',
+            overflow: 'auto',
             whiteSpace: 'pre-wrap'
         }}>
             <p>A problem has been detected and Windows has been shut down to prevent damage</p>
