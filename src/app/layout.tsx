@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./retro.css";
+import { BSOD } from "../components/BSOD";
 
 export const metadata: Metadata = {
   title: "OpenChaos.dev",
@@ -15,6 +16,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <BSOD />
         {children}
       </body>
     </html>
