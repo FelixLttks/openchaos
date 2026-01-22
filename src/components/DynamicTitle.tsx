@@ -59,10 +59,6 @@ export function DynamicTitle() {
                 offset = (offset + 1) % baseText.length;
                 const currentSlice = displayText.substring(offset, offset + 20); // Show ~20 chars
 
-                // Or simpler: create a rolling string
-                // Let's do the classic marquee: "Text    " moving left
-                // Better yet, just specific weird animations or simple scrolling
-
                 // Simple scroll implementation
                 const scrollText = `${slogan} *** ${slogan} *** `;
                 const scrollLen = scrollText.length;
