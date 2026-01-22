@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { DynamicTitle } from "@/components/DynamicTitle";
 import "./globals.css";
 import "./retro.css";
 
@@ -15,6 +16,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <DynamicTitle />
         {children}
       </body>
     </html>
